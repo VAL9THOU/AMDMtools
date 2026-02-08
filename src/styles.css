@@ -325,6 +325,23 @@ textarea:focus-visible {
   font-style: italic;
 }
 
+.sort-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.sort-label select {
+  background: #1e293b;
+  color: #d1d5db;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
 .mod-size {
   display: inline-block;
   margin-left: 8px;

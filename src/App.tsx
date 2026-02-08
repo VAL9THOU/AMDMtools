@@ -26,6 +26,7 @@ type LoadedFile = {
 
 type SelectionState = Record<string, boolean>;
 type MergeType = "preset" | "list";
+type SortOption = "default" | "a-z" | "z-a" | "size-desc" | "size-asc";
 
 type OutputSnapshot = {
   text: string;
@@ -45,6 +46,34 @@ function sumSectionSize(mods: ArmaModEntry[], sizes: ModSizeMap): number {
     }
   }
   return total;
+}
+
+function sortMods(mods: ArmaModEntry[], sort: SortOption, sizes?: ModSizeMap): ArmaModEntry[] {
+  if (sort === "default") return mods;
+  const sorted = [...mods];
+  switch (sort) {
+    case "a-z":
+      sorted.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      break;
+    case "z-a":
+      sorted.sort((a, b) => b.displayName.localeCompare(a.displayName));
+      break;
+    case "size-desc":
+      sorted.sort((a, b) => {
+        const sA = (a.steamId && sizes?.[a.steamId]) || 0;
+        const sB = (b.steamId && sizes?.[b.steamId]) || 0;
+        return sB - sA;
+      });
+      break;
+    case "size-asc":
+      sorted.sort((a, b) => {
+        const sA = (a.steamId && sizes?.[a.steamId]) || 0;
+        const sB = (b.steamId && sizes?.[b.steamId]) || 0;
+        return sA - sB;
+      });
+      break;
+  }
+  return sorted;
 }
 
 function baseSectionLabels(
@@ -121,6 +150,7 @@ export function App() {
   const [mergeType, setMergeType] = useState<MergeType>("preset");
   const [mergeStatus, setMergeStatus] = useState<string | null>(null);
   const [includeSizes, setIncludeSizes] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>("default");
 
   const modSizes = useModSizes(
     fileA?.parsed.mods ?? null,
@@ -516,6 +546,7 @@ export function App() {
     setFormatForDiscord(false);
     setDragOverSlot(null);
     setIncludeSizes(false);
+    setSortOption("default");
   };
 
   const handleCopyOutput = async () => {
@@ -676,13 +707,30 @@ export function App() {
           <span className="size-warning">Fetches data from the Steam Web API via proxy</span>
           {modSizes.loading ? <span className="meta">Loading sizes...</span> : null}
           {modSizes.error ? <span className="warning">{modSizes.error}</span> : null}
+          <label className="sort-label">
+            Sort:
+            <select
+              value={sortOption}
+              onChange={(event) => setSortOption(event.target.value as SortOption)}
+            >
+              <option value="default">Default</option>
+              <option value="a-z">Name (A-Z)</option>
+              <option value="z-a">Name (Z-A)</option>
+              {includeSizes && !modSizes.loading && Object.keys(modSizes.sizes).length > 0 ? (
+                <>
+                  <option value="size-desc">Size (largest)</option>
+                  <option value="size-asc">Size (smallest)</option>
+                </>
+              ) : null}
+            </select>
+          </label>
         </div>
       ) : null}
 
       {!rawDiff && (fileA || fileB) ? (() => {
         const singleFile = fileA ?? fileB;
         if (!singleFile) return null;
-        const mods = singleFile.parsed.mods;
+        const mods = sortMods(singleFile.parsed.mods, sortOption, sizeContext?.sizes);
         return (
           <section className="section-grid" style={{ gridTemplateColumns: "1fr" }}>
             <article className="card section-card" role="region" aria-labelledby="section-title-single">
@@ -788,7 +836,7 @@ export function App() {
                 {rawDiff[section].length === 0 ? (
                   <li className="mod-empty">No mods in this section.</li>
                 ) : (
-                  rawDiff[section].map((mod) => {
+                  sortMods(rawDiff[section], sortOption, sizeContext?.sizes).map((mod) => {
                     const key = modKey(section, mod);
                     const checked = includedByKey[key] !== false;
                     return (
