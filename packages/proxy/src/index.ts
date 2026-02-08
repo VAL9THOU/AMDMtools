@@ -13,7 +13,7 @@ const MAX_IDS_PER_REQUEST = 100;
 
 interface SteamFileDetails {
   publishedfileid: string;
-  file_size?: number;
+  file_size?: number | string;
   result: number;
 }
 
@@ -110,7 +110,7 @@ export default {
         const data = (await steamResponse.json()) as SteamApiResponse;
         for (const detail of data.response.publishedfiledetails) {
           const fileSize =
-            detail.result === 1 && detail.file_size != null ? detail.file_size : null;
+            detail.result === 1 && detail.file_size != null ? Number(detail.file_size) : null;
           sizes[detail.publishedfileid] = fileSize;
 
           await env.MOD_SIZES_KV.put(
