@@ -600,8 +600,8 @@ export function App() {
   return (
     <main className="page">
       <header>
-        <h1>Arma Modlist Diff Tool</h1>
-        <p>Upload two Arma preset/modlist HTML files to compare and format the differences.</p>
+        <h1>Arma Modlist Diff & Merge</h1>
+        <p>Upload two Arma preset/modlist HTML files to compare and format the differences, or upload one to view and edit.</p>
       </header>
 
       <section className="upload-grid">
