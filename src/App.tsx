@@ -663,7 +663,7 @@ export function App() {
         <p className="meta">Both uploaded files appear to be identical.</p>
       ) : null}
 
-      {rawDiff && sectionLabels ? (
+      {fileA || fileB ? (
         <div className="size-toggle">
           <label className="current-label">
             <input
@@ -678,6 +678,52 @@ export function App() {
           {modSizes.error ? <span className="warning">{modSizes.error}</span> : null}
         </div>
       ) : null}
+
+      {!rawDiff && (fileA || fileB) ? (() => {
+        const singleFile = fileA ?? fileB;
+        if (!singleFile) return null;
+        const mods = singleFile.parsed.mods;
+        return (
+          <section className="section-grid" style={{ gridTemplateColumns: "1fr" }}>
+            <article className="card section-card" role="region" aria-labelledby="section-title-single">
+              <div className="section-header">
+                <h2 id="section-title-single">
+                  {singleFile.parsed.name ?? singleFile.fileName} ({mods.length})
+                  {sizeContext ? (
+                    <span className="section-size">
+                      {" "}[{formatBytes(sumSectionSize(mods, sizeContext.sizes))}]
+                    </span>
+                  ) : null}
+                </h2>
+              </div>
+              <ul className="mod-list-ui">
+                {mods.map((mod) => (
+                  <li key={mod.steamId ?? mod.displayName} className="mod-item">
+                    <div className="mod-main">
+                      <span>{mod.displayName}</span>
+                      {sizeContext && mod.steamId && mod.steamId in sizeContext.sizes ? (
+                        <span className="mod-size">[{formatBytes(sizeContext.sizes[mod.steamId])}]</span>
+                      ) : null}
+                    </div>
+                    <div className="mod-actions">
+                      {mod.steamUrl ? (
+                        <a href={mod.steamUrl} target="_blank" rel="noreferrer">Steam</a>
+                      ) : (
+                        <span className="mod-source-local">Local</span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {sizeContext ? (
+                <p className="modlist-total">
+                  [{formatBytes(sumSectionSize(mods, sizeContext.sizes))}]
+                </p>
+              ) : null}
+            </article>
+          </section>
+        );
+      })() : null}
 
       {rawDiff && sectionLabels ? (
         <section className="section-grid">

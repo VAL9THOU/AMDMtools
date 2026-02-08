@@ -64,19 +64,19 @@ export function useModSizes(
   );
 
   useEffect(() => {
-    if (!enabled || !modsA || !modsB) {
+    if (!enabled || (!modsA && !modsB)) {
       setState(EMPTY_STATE);
       return;
     }
 
-    const allMods = [...modsA, ...modsB];
+    const allMods = [...(modsA ?? []), ...(modsB ?? [])];
     if (allMods.length === 0) {
       setState(EMPTY_STATE);
       return;
     }
 
     const generation = ++generationRef.current;
-    void doFetch(allMods, modsA, modsB, generation);
+    void doFetch(allMods, modsA ?? [], modsB ?? [], generation);
   }, [enabled, modsA, modsB, doFetch]);
 
   return state;
