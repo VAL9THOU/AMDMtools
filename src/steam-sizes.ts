@@ -1,7 +1,7 @@
 import type { ArmaModEntry, ModSizeMap } from "../packages/core/src";
 
-const PROXY_URL =
-  import.meta.env.VITE_PROXY_URL ?? "http://localhost:8787";
+const PROXY_URL: string =
+  (import.meta.env.VITE_PROXY_URL as string | undefined) ?? "http://localhost:8787";
 const LOCAL_STORAGE_KEY = "arma-mod-sizes-v1";
 const LOCAL_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 100;

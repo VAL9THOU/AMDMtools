@@ -13,7 +13,7 @@ test.describe("mod sizes feature", () => {
   test.beforeEach(async ({ page }) => {
     // Mock the proxy endpoint so tests don't require a live Worker
     await page.route("**/localhost:8787**", async (route) => {
-      const body = JSON.parse(route.request().postData() ?? "{}");
+      const body = JSON.parse(route.request().postData() ?? "{}") as { steamIds?: string[] };
       const sizes: Record<string, number> = {};
       for (const id of body.steamIds ?? []) {
         // Return 100 MB for each mod for predictable testing

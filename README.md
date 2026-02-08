@@ -1,3 +1,5 @@
+# This is vibe coded slop done mostly as an experiment. Use at your own risk.
+
 # Arma Modlist Diff Tool
 
 Browser-based Arma 3 modlist/preset comparison tool with a reusable TypeScript core module.
