@@ -1,0 +1,13 @@
+name = "arma-modlist-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+# STEAM_API_KEY is set via `wrangler secret put STEAM_API_KEY`
+# ALLOWED_ORIGIN restricts CORS to the deployed GitHub Pages domain
+ALLOWED_ORIGIN = "https://1240e.github.io"
+
+[[kv_namespaces]]
+binding = "MOD_SIZES_KV"
+id = "810fb0fabaaf4b17b9f4b1944b278f52"
+preview_id = "2c8123571cb240408d20ea20a1ca5864"

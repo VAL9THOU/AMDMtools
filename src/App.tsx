@@ -2,6 +2,7 @@ import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
 import {
   defaultIdentityFn,
   diffModLists,
+  formatBytes,
   formatDiffResult,
   mergeModLists,
   parseModList,
@@ -9,8 +10,11 @@ import {
   type ArmaModList,
   type DiffSectionKey,
   type ModDiffResult,
-  type OutputFormat
+  type ModSizeMap,
+  type OutputFormat,
+  type SizeContext
 } from "../packages/core/src";
+import { useModSizes } from "./use-mod-sizes";
 
 const ALL_SECTIONS: DiffSectionKey[] = ["onlyInA", "onlyInB", "common"];
 const OUTPUT_SECTIONS: DiffSectionKey[] = ["onlyInA", "onlyInB"];
@@ -31,6 +35,16 @@ type OutputSnapshot = {
 
 function modKey(section: DiffSectionKey, mod: ArmaModEntry): string {
   return `${section}:${defaultIdentityFn(mod)}`;
+}
+
+function sumSectionSize(mods: ArmaModEntry[], sizes: ModSizeMap): number {
+  let total = 0;
+  for (const mod of mods) {
+    if (mod.steamId && mod.steamId in sizes) {
+      total += sizes[mod.steamId];
+    }
+  }
+  return total;
 }
 
 function baseSectionLabels(
@@ -106,6 +120,13 @@ export function App() {
   const [mergeName, setMergeName] = useState("Merged Preset");
   const [mergeType, setMergeType] = useState<MergeType>("preset");
   const [mergeStatus, setMergeStatus] = useState<string | null>(null);
+  const [includeSizes, setIncludeSizes] = useState(false);
+
+  const modSizes = useModSizes(
+    fileA?.parsed.mods ?? null,
+    fileB?.parsed.mods ?? null,
+    includeSizes
+  );
 
   const setParsingState = (slot: "A" | "B", value: boolean) => {
     if (slot === "A") {
@@ -229,6 +250,26 @@ export function App() {
     return "";
   }, [fileA, fileB, filteredDiff, rawHasDifferences, filteredHasDifferences]);
 
+  const sizeContext = useMemo<SizeContext | undefined>(() => {
+    if (!includeSizes || modSizes.loading || Object.keys(modSizes.sizes).length === 0) {
+      return undefined;
+    }
+    return {
+      sizes: modSizes.sizes,
+      totalA: modSizes.totalA,
+      totalB: modSizes.totalB
+    };
+  }, [includeSizes, modSizes.loading, modSizes.sizes, modSizes.totalA, modSizes.totalB]);
+
+  const sizeFooter = useMemo<string | undefined>(() => {
+    if (!sizeContext || !currentSlot) return undefined;
+
+    const currentTotal = currentSlot === "A" ? sizeContext.totalA : sizeContext.totalB;
+    const otherTotal = currentSlot === "A" ? sizeContext.totalB : sizeContext.totalA;
+
+    return `${formatBytes(currentTotal ?? 0)} -> ${formatBytes(otherTotal ?? 0)}`;
+  }, [sizeContext, currentSlot]);
+
   const buildEmptySnapshot = (message: string): OutputSnapshot => ({
     text: message,
     parts: [message],
@@ -259,7 +300,9 @@ export function App() {
       sectionLabels: {
         onlyInA: sectionLabels.onlyInA,
         onlyInB: sectionLabels.onlyInB
-      }
+      },
+      sizeContext,
+      sizeFooter
     });
   }, [
     fileA,
@@ -268,7 +311,9 @@ export function App() {
     sectionLabels,
     formatForDiscord,
     showAsHyperlinks,
-    outputEmptyMessage
+    outputEmptyMessage,
+    sizeContext,
+    sizeFooter
   ]);
 
   const discordOutput = useMemo(() => {
@@ -289,9 +334,11 @@ export function App() {
       sectionLabels: {
         onlyInA: sectionLabels.onlyInA,
         onlyInB: sectionLabels.onlyInB
-      }
+      },
+      sizeContext,
+      sizeFooter
     });
-  }, [fileA, fileB, filteredDiff, sectionLabels, showAsHyperlinks, outputEmptyMessage]);
+  }, [fileA, fileB, filteredDiff, sectionLabels, showAsHyperlinks, outputEmptyMessage, sizeContext, sizeFooter]);
 
   const handleFileChange =
     (slot: "A" | "B") => (event: ChangeEvent<HTMLInputElement>) => {
@@ -468,6 +515,7 @@ export function App() {
     setShowAsHyperlinks(false);
     setFormatForDiscord(false);
     setDragOverSlot(null);
+    setIncludeSizes(false);
   };
 
   const handleCopyOutput = async () => {
@@ -616,6 +664,22 @@ export function App() {
       ) : null}
 
       {rawDiff && sectionLabels ? (
+        <div className="size-toggle">
+          <label className="current-label">
+            <input
+              type="checkbox"
+              checked={includeSizes}
+              onChange={(event) => setIncludeSizes(event.target.checked)}
+            />
+            Include mod sizes
+          </label>
+          <span className="size-warning">Fetches data from the Steam Web API via proxy</span>
+          {modSizes.loading ? <span className="meta">Loading sizes...</span> : null}
+          {modSizes.error ? <span className="warning">{modSizes.error}</span> : null}
+        </div>
+      ) : null}
+
+      {rawDiff && sectionLabels ? (
         <section className="section-grid">
           {ALL_SECTIONS.map((section) => (
             <article
@@ -627,6 +691,11 @@ export function App() {
               <div className="section-header">
                 <h2 id={`section-title-${section}`}>
                   {sectionLabels[section]} ({getCount(section)})
+                  {sizeContext ? (
+                    <span className="section-size">
+                      {" "}[{formatBytes(sumSectionSize(rawDiff[section], sizeContext.sizes))}]
+                    </span>
+                  ) : null}
                 </h2>
                 <div className="section-actions">
                   <button
@@ -688,6 +757,9 @@ export function App() {
                             />
                             <span>{mod.displayName}</span>
                           </label>
+                          {sizeContext && mod.steamId && mod.steamId in sizeContext.sizes ? (
+                            <span className="mod-size">[{formatBytes(sizeContext.sizes[mod.steamId])}]</span>
+                          ) : null}
                         </div>
                         <div className="mod-actions">
                           {section !== "common" ? (
@@ -717,6 +789,11 @@ export function App() {
                   })
                 )}
               </ul>
+              {sizeContext && section !== "common" ? (
+                <p className="modlist-total">
+                  [{formatBytes(section === "onlyInA" ? modSizes.totalA : modSizes.totalB)}]
+                </p>
+              ) : null}
             </article>
           ))}
         </section>

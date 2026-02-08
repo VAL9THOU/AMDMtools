@@ -311,6 +311,44 @@ textarea:focus-visible {
   border-color: #a8742a;
 }
 
+.size-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.size-warning {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.mod-size {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-family: Consolas, "Courier New", monospace;
+  white-space: nowrap;
+}
+
+.section-size {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.modlist-total {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+  font-family: Consolas, "Courier New", monospace;
+  border-top: 1px solid #1e293b;
+}
+
 @media (max-width: 820px) {
   .merge-options {
     grid-template-columns: 1fr;
