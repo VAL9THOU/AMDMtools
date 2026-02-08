@@ -83,16 +83,16 @@ function baseSectionLabels(
 ): Record<DiffSectionKey, string> {
   if (currentSlot === "A") {
     return {
-      onlyInA: "Removed",
-      onlyInB: "Added",
+      onlyInA: "Added",
+      onlyInB: "Removed",
       common: "Common Mods"
     };
   }
 
   if (currentSlot === "B") {
     return {
-      onlyInA: "Added",
-      onlyInB: "Removed",
+      onlyInA: "Removed",
+      onlyInB: "Added",
       common: "Common Mods"
     };
   }
