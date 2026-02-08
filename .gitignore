@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+*.log
+.idea/
+.vscode/
+.eslintcache
+playwright-report/
+test-results/

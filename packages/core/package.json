@@ -1,0 +1,49 @@
+{
+  "name": "@arma-modlist-diff/core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Core parser and diff utilities for Arma modlist HTML exports.",
+  "keywords": [
+    "arma3",
+    "modlist",
+    "preset",
+    "diff",
+    "typescript"
+  ],
+  "license": "MIT",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1240e/armamodlistdifftool.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/1240e/armamodlistdifftool/issues"
+  },
+  "homepage": "https://github.com/1240e/armamodlistdifftool/tree/main/packages/core#readme",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "test": "vitest run",
+    "pack:dry-run": "npm pack --dry-run"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
