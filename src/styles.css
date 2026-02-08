@@ -333,6 +333,13 @@ textarea:focus-visible {
   color: #d1d5db;
 }
 
+.discord-parts-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
 .sort-label select {
   background: #1e293b;
   color: #d1d5db;

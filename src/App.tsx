@@ -566,14 +566,30 @@ export function App() {
       return;
     }
 
-    const copyPayload = discordOutput.parts.join("\n\n");
-    try {
-      await copyWithFallback(copyPayload);
-      if (discordOutput.parts.length > 1) {
-        setCopyStatus(`Copied Discord output in ${discordOutput.parts.length} parts.`);
-      } else {
+    if (discordOutput.parts.length <= 1) {
+      try {
+        await copyWithFallback(discordOutput.parts[0] ?? discordOutput.text);
         setCopyStatus("Copied! Paste into Discord.");
+      } catch {
+        setCopyStatus("Clipboard copy failed.");
       }
+    } else {
+      try {
+        await copyWithFallback(discordOutput.parts[0]);
+        setCopyStatus(`Copied part 1 of ${discordOutput.parts.length}. Use the part buttons below to copy the rest.`);
+      } catch {
+        setCopyStatus("Clipboard copy failed.");
+      }
+    }
+  };
+
+  const handleCopyDiscordPart = async (partIndex: number) => {
+    if (!discordOutput) {
+      return;
+    }
+    try {
+      await copyWithFallback(discordOutput.parts[partIndex]);
+      setCopyStatus(`Copied part ${partIndex + 1} of ${discordOutput.parts.length}.`);
     } catch {
       setCopyStatus("Clipboard copy failed.");
     }
@@ -1001,9 +1017,25 @@ export function App() {
         />
 
         {discordOutput && discordOutput.parts.length > 1 ? (
-          <p className="warning">
-            Discord output is split into {discordOutput.parts.length} parts due to the 2000-character limit.
-          </p>
+          <div className="discord-parts">
+            <p className="warning">
+              Discord output is split into {discordOutput.parts.length} parts due to the 2000-character limit.
+            </p>
+            <div className="discord-parts-buttons">
+              {discordOutput.parts.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    void handleCopyDiscordPart(index);
+                  }}
+                >
+                  Copy Part {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : null}
 
       </section>
